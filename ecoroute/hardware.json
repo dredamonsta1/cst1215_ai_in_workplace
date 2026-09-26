@@ -1,0 +1,25 @@
+{
+  "_meta": {
+    "description": "Accelerator energy profiles. peak_flops_bf16 is dense (non-sparse) vendor-published throughput.",
+    "phase_note": "Prefill (prompt processing) is compute-bound and reaches high FLOP utilization. Decode (token generation) is memory-bandwidth-bound, so achieved FLOP utilization collapses even though the chip still draws near-TDP power. Modeling the two phases separately is what keeps the energy estimate honest.",
+    "utilization_source": "Published MFU ranges for served transformer inference on dense BF16 kernels."
+  },
+  "accelerators": [
+    {
+      "id": "H100",
+      "name": "NVIDIA H100 SXM5 80GB",
+      "tdp_watts": 700.0,
+      "peak_flops_bf16": 9.894e14,
+      "prefill_utilization": 0.4,
+      "decode_utilization": 0.08
+    },
+    {
+      "id": "A100",
+      "name": "NVIDIA A100 SXM4 80GB",
+      "tdp_watts": 400.0,
+      "peak_flops_bf16": 3.12e14,
+      "prefill_utilization": 0.35,
+      "decode_utilization": 0.07
+    }
+  ]
+}

@@ -1,0 +1,54 @@
+{
+  "_meta": {
+    "description": "Regional telemetry profiles for modeled hyperscaler data-center corridors.",
+    "carbon_source": "EPA eGRID subregion marginal emission baselines (annual average, non-real-time).",
+    "latency_reference": "baseline_latency_ms is a static round-trip estimate from a reference client on the US East Coast (Toronto/NYC corridor). Deterministic by design -- EcoRoute does not probe the network.",
+    "wue_units": "liters of water evaporated per kWh of facility energy (site WUE)."
+  },
+  "regions": [
+    {
+      "id": "us-east-va",
+      "name": "Northern Virginia",
+      "corridor": "Data Center Alley (AWS us-east-1)",
+      "cloud_region": "aws:us-east-1",
+      "dominant_sources": ["natural gas", "coal", "nuclear"],
+      "carbon_intensity_g_per_kwh": 360.0,
+      "pue": 1.18,
+      "wue_l_per_kwh": 1.8,
+      "baseline_latency_ms": 15
+    },
+    {
+      "id": "us-central-ia",
+      "name": "Council Bluffs, Iowa",
+      "corridor": "Iowa Wind Corridor (GCP us-central1)",
+      "cloud_region": "gcp:us-central1",
+      "dominant_sources": ["wind", "natural gas"],
+      "carbon_intensity_g_per_kwh": 280.0,
+      "pue": 1.15,
+      "wue_l_per_kwh": 1.35,
+      "baseline_latency_ms": 35
+    },
+    {
+      "id": "us-west-or",
+      "name": "Columbia Basin, Oregon",
+      "corridor": "Columbia Basin Hydro (AWS us-west-2)",
+      "cloud_region": "aws:us-west-2",
+      "dominant_sources": ["hydroelectric", "wind"],
+      "carbon_intensity_g_per_kwh": 110.0,
+      "pue": 1.12,
+      "wue_l_per_kwh": 0.65,
+      "baseline_latency_ms": 75
+    },
+    {
+      "id": "eu-north-se",
+      "name": "Nordic Hub, Sweden",
+      "corridor": "Nordic free-cooling belt (GCP europe-north1)",
+      "cloud_region": "gcp:europe-north1",
+      "dominant_sources": ["hydroelectric", "nuclear"],
+      "carbon_intensity_g_per_kwh": 25.0,
+      "pue": 1.1,
+      "wue_l_per_kwh": 0.12,
+      "baseline_latency_ms": 110
+    }
+  ]
+}
