@@ -1,0 +1,7 @@
+# EcoRoute runtime + test dependencies
+mcp>=2.2,<3          # Model Context Protocol SDK (MCPServer, STDIO transport)
+pydantic>=2.7,<3     # tool input/output schema validation
+
+# Tests
+pytest>=8.0
+anyio>=4.0           # async test driver for the STDIO protocol tests
