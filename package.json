@@ -1,0 +1,12 @@
+{
+  "name": "ecoroute-demo-tools",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Presentation tooling only. The EcoRoute server itself is pure Python -- this exists so the official MCP Inspector GUI is vendored locally and runs offline during the class demo.",
+  "scripts": {
+    "inspect": "mcp-inspector .venv/bin/python -m ecoroute.server"
+  },
+  "devDependencies": {
+    "@modelcontextprotocol/inspector": "^0.16.0"
+  }
+}

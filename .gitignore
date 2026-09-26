@@ -8,3 +8,6 @@ build/
 dist/
 benchmark_results.csv
 .DS_Store
+
+# Demo tooling (MCP Inspector is vendored via npm; 150MB, reinstall with `npm install`)
+node_modules/

@@ -19,7 +19,7 @@ python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 
-pytest                 # 38 tests: 31 unit + 7 end-to-end protocol
+pytest                 # 43 tests: 31 unit + 7 protocol + 5 demo smoke
 python benchmark.py    # comparative carbon analysis
 python -m ecoroute.server   # start the MCP server on STDIO
 ```
@@ -27,8 +27,60 @@ python -m ecoroute.server   # start the MCP server on STDIO
 The server speaks JSON-RPC on stdin/stdout, so run it directly only to confirm it starts;
 normally an MCP client launches it.
 
-## Connect to Claude Desktop
+## Demoing it (Milestone 5)
 
+Two independent ways to show this to an audience. Both run **fully offline** once set up.
+
+### 1. Scripted walkthrough — `demo.py`
+
+A seven-act narrative driven by a real MCP client over STDIO. Nothing is precomputed:
+every figure on screen arrived over JSON-RPC during the run.
+
+```bash
+python demo.py --pause    # waits for Enter between acts -- use this when presenting
+python demo.py            # straight through
+python demo.py --raw      # also prints the raw JSON-RPC payloads
+```
+
+The arc: capability discovery → what the server knows about the grid → the status quo
+(route by latency, land in Virginia) → ask the router with a 500 ms budget (Sweden, 93.5%
+saving) → tighten to 50 ms and watch the recommendation **shift to Iowa** → an impossible
+5 ms budget returns a structured error rather than a bad answer → project one decision to
+fleet scale.
+
+The 50 ms act is the one worth dwelling on: it shows the router declining the greenest
+option because the workload cannot tolerate it. That is the deterministic constraint
+routing from §2 of the plan, made visible.
+
+### 2. Interactive GUI — MCP Inspector
+
+The official MCP browser client. Tool list, input forms you can fill live, JSON responses,
+and a protocol message log — good for taking questions from the class.
+
+```bash
+npm install          # one-time; vendors the Inspector into node_modules/ (~150 MB)
+npm run inspect      # opens the GUI in your browser
+```
+
+It prints a pre-authenticated `http://localhost:6274/?MCP_PROXY_AUTH_TOKEN=...` URL — open
+*that* link, not a bare `localhost:6274`, or the GUI will sit unauthenticated. Then hit
+**Connect**, **List Tools**, and call `get_optimal_region` from the form.
+
+Headless equivalent, handy for a smoke check before you walk in:
+
+```bash
+node_modules/.bin/mcp-inspector-cli --cli .venv/bin/python -m ecoroute.server \
+  --method tools/call --tool-name get_optimal_region \
+  --tool-arg prompt_tokens=128000 --tool-arg completion_tokens=2000 \
+  --tool-arg max_latency_ms=200
+```
+
+`package.json` exists **only** for this tooling. The server itself is pure Python.
+
+### 3. Optional: Claude Desktop
+
+The most compelling framing — the LLM decides for itself when to call the router — but it
+needs [Claude Desktop](https://claude.ai/download) installed and configured ahead of time.
 Add to `claude_desktop_config.json` (macOS:
 `~/Library/Application Support/Claude/claude_desktop_config.json`), using **absolute
 paths**:
@@ -71,6 +123,7 @@ can tolerate 200 ms of latency?"*
         v
   ecoroute/calculator.py  pure math engine (no I/O beyond loading the data files)
         |
+        +-- ecoroute/display.py      shared unit scaling + table rendering
         +-- ecoroute/regions.json   grid intensity, PUE, WUE, latency per region
         +-- ecoroute/hardware.json  accelerator FLOP/Joule profiles
 ```
@@ -149,7 +202,10 @@ older accelerator.
 | `ecoroute/regions.json`, `hardware.json` | Member 2 — Data profiles | Regional + accelerator telemetry |
 | `tests/test_calculator.py` | Member 2 — Tests | 31 deterministic unit tests |
 | `tests/test_server.py` | Member 1 — Tests | 7 end-to-end JSON-RPC tests |
+| `tests/test_demo.py` | Member 3 — Tests | 5 smoke tests over the presentation script |
 | `benchmark.py` | Member 3 — Evaluation | Comparative analysis + fleet projection |
+| `demo.py` | Member 3 — Presentation | Scripted live demo over a real MCP client |
+| `ecoroute/display.py` | shared | Unit scaling + table rendering for both scripts |
 
 ## Milestone status
 
@@ -157,4 +213,4 @@ older accelerator.
 - [x] **M2** Core calculation engine — `calculator.py` + 31 passing unit tests
 - [x] **M3** MCP server tool wiring — tools served over STDIO, verified by a real client
 - [x] **M4** Benchmarking & analysis — `benchmark.py` with CSV export
-- [ ] **M5** Final submission & live demo — slides and demo script still to write
+- [x] **M5** Live demo — `demo.py` plus the MCP Inspector GUI (slides still to write)

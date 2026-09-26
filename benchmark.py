@@ -18,6 +18,7 @@ import csv
 from dataclasses import dataclass
 
 from ecoroute import calculator as calc
+from ecoroute.display import fmt, fmt_column, table
 
 # Requests per day used for the fleet-scale projection in the final section.
 FLEET_REQUESTS_PER_DAY = 1_000_000
@@ -39,49 +40,6 @@ WORKLOADS = (
     Workload("medium", "Medium (doc summary)", 8_000, 1_000, "single-document summarisation"),
     Workload("large", "Large (long-context RAG)", 128_000, 2_000, "full-context retrieval answer"),
 )
-
-
-# Unit ladders: (suffix, multiplier applied to the base unit).
-_LADDERS = {
-    "g": (("mg", 1000.0), ("g", 1.0), ("kg", 0.001)),
-    "L": (("mL", 1000.0), ("L", 1.0)),
-    "kWh": (("mWh", 1e6), ("Wh", 1000.0), ("kWh", 1.0)),
-}
-
-
-def _pick_unit(values: list[float], unit: str) -> tuple[str, float]:
-    """Choose one unit for a whole column, driven by its largest value.
-
-    Formatting each cell independently makes a column flip between mWh and
-    kWh mid-table, which is unreadable on a slide. The column instead commits
-    to the largest unit that still keeps its peak value below 1000, so figures
-    land in a readable 1-999 band rather than as 10,441 mWh.
-    """
-    ladder = _LADDERS[unit]
-    peak = max((abs(v) for v in values), default=0.0)
-    for suffix, multiplier in ladder:
-        if peak * multiplier < 1000.0:
-            return suffix, multiplier
-    return ladder[-1]
-
-
-def _fmt_column(values: list[float], unit: str) -> list[str]:
-    """Format a column of quantities in a single shared unit."""
-    suffix, multiplier = _pick_unit(values, unit)
-    return [f"{v * multiplier:,.3f} {suffix}" for v in values]
-
-
-def _fmt(value: float, unit: str) -> str:
-    """Format a single quantity, auto-scaling to a readable unit."""
-    return _fmt_column([value], unit)[0]
-
-
-def _table(headers: list[str], rows: list[list[str]]) -> str:
-    widths = [max(len(h), *(len(r[i]) for r in rows)) for i, h in enumerate(headers)]
-    line = "  ".join(h.ljust(widths[i]) for i, h in enumerate(headers))
-    rule = "  ".join("-" * w for w in widths)
-    body = "\n".join("  ".join(r[i].ljust(widths[i]) for i in range(len(headers))) for r in rows)
-    return f"{line}\n{rule}\n{body}"
 
 
 def collect(hardware: str, model_params_b: float) -> list[dict]:
@@ -136,9 +94,9 @@ def report(rows: list[dict], hardware: str, model_params_b: float) -> None:
         print(f"\n{workload.label} -- {workload.prompt_tokens:,} prompt / "
               f"{workload.completion_tokens:,} completion tokens ({workload.note})")
         ordered = sorted(subset, key=lambda r: r["carbon_g_co2eq"])
-        energy = _fmt_column([r["energy_kwh"] for r in ordered], "kWh")
-        carbon = _fmt_column([r["carbon_g_co2eq"] for r in ordered], "g")
-        water = _fmt_column([r["water_liters"] for r in ordered], "L")
+        energy = fmt_column([r["energy_kwh"] for r in ordered], "kWh")
+        carbon = fmt_column([r["carbon_g_co2eq"] for r in ordered], "g")
+        water = fmt_column([r["water_liters"] for r in ordered], "L")
         table_rows = [
             [
                 r["region"],
@@ -150,7 +108,7 @@ def report(rows: list[dict], hardware: str, model_params_b: float) -> None:
             ]
             for i, r in enumerate(ordered)
         ]
-        print(_table(
+        print(table(
             ["region", "latency", "energy", "carbon", "water", "vs baseline"],
             table_rows,
         ))
@@ -167,7 +125,7 @@ def report(rows: list[dict], hardware: str, model_params_b: float) -> None:
         )
         for workload in WORKLOADS
     ]
-    saved_column = _fmt_column(
+    saved_column = fmt_column(
         [va["carbon_g_co2eq"] - or_["carbon_g_co2eq"] for _, va, or_ in pairs], "g"
     )
     for (workload, _, or_), saved in zip(pairs, saved_column):
